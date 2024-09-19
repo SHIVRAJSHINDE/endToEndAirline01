@@ -1,5 +1,6 @@
 import pickle
 import pandas as pd
+import os
 from sklearn.linear_model import LinearRegression, Ridge, Lasso, ElasticNet
 from sklearn.model_selection import GridSearchCV
 from sklearn.linear_model import LinearRegression, Ridge, Lasso, ElasticNet
@@ -66,7 +67,8 @@ class ModelTrainer:
             if accuracy > self.best_accuracy:
                 self.best_accuracy = accuracy
                 self.best_model = best_model_instance
-                with open(self.save_path, 'wb') as f:
+                os.makedirs('artifacts', exist_ok=True)
+                with open('artifacts/'+self.save_path, 'wb') as f:
                     pickle.dump(best_model_instance, f)
                 print(f"Saved new best model: {model_name} with accuracy: {self.best_accuracy:.4f}")
 

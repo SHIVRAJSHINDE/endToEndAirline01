@@ -1,42 +1,40 @@
-from flask import Flask,request,render_template
-import numpy as np
+from flask import Flask, request, render_template
+from flask_cors import cross_origin
+import sklearn
+import pickle
 import pandas as pd
+from src.predictionPipeline import CustomData
+app = Flask(__name__)
 
-from src.pipeline.predict_pipeline import CustomData,PredictPipeline
-application = Flask(__name__)
-app =application
+@app.route("/")
+@cross_origin()
+def home():
+    return render_template("home.html")
 
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-
-@app.route('/predictedata',methods=['GET','POST'])
-def predict_datapoint():
-    if request.method=='GET':
-        return render_template('home.html')
+@app.route("/predict", methods=["GET", "POST"])
+@cross_origin()
+def predict():
+    if request.method=="GET":
+        return render_template(home.html)
     else:
-        data = CustomData(age=request.form.get('age'),
-                          sex=request.form.get('sex'),
-                          bmi=request.form.get('bmi'),
-                          children=request.form.get('children'),
-                          smoker=request.form.get('smoker'),
-                          region=request.form.get('region'))
-
-        pred_df = data.get_data_as_data_frame()
-        print(pred_df)
-        print("Before prediction")
-
-        predict_pipeline = PredictPipeline()
-        print("Mid Prediction")
-        results = predict_pipeline.predict(pred_df)
-        print("after Prediction")
-        return render_template('home.html',results=results[0])
+        custom_Data = CustomData()
+        output = custom_Data.receiveDataFromWeb(
+                          Airline = request.form.get('Airline'),
+                          Date_of_Journey = request.form.get('Dep_Time'),
+                          Source = request.form.get('Source'),
+                          Destination = request.form.get('Destination'),
+                          Dep_Time = request.form.get('Dep_Time'),
+                          Arrival_Time = request.form.get('Arrival_Time'),
+                          Duration = request.form.get('Duration'),
+                          Total_Stops = request.form.get('Total_Stops')
+        
+                    )
 
 
+        return render_template('home.html', prediction_text="Your Flight price is Rs. {}".format(output))
 
-if __name__ =="__main__":
+    return render_template("home.html")
+
+
+if __name__ == "__main__":
     app.run(host="0.0.0.0",debug=True)
-
-
-

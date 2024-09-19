@@ -1,10 +1,11 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 from src.component.st01apreprocessingFunctions import streamlineData
-from src.component.st01trainingFunctions import ModelTrainer
+from src.component.st02trainingFunctions import ModelTrainer
 import seaborn as sns
 import warnings
 from dataclasses import dataclass, field
+from src.exp.utils import save_object
 
 warnings.filterwarnings('ignore')
 
@@ -38,9 +39,7 @@ class TrainingPipeline:
 
         X_train = pipe.fit_transform(X_train)
         X_test = pipe.transform(X_test)
-
-
-        
+        save_object(file_path='artifacts/preprocessor.pkl',obj=pipe)
         self.ModelTrainer.train_and_save_best_model(X_train, y_train, X_test, y_test)
 
         return pd.DataFrame(X_train)

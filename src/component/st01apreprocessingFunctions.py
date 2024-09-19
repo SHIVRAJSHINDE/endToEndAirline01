@@ -2,7 +2,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import warnings
-
+import os
+import sys
+import pandas as pd
+from src.exp.utils import load_objects
 warnings.filterwarnings('ignore')
 from sklearn.model_selection import train_test_split
 from sklearn.compose import ColumnTransformer
@@ -168,11 +171,53 @@ class streamlineData():
         pipe = make_pipeline(trf1,trf2,trf3)
 
         # Save the pipeline as preprocessor.pkl
-        with open('preprocessor.pkl', 'wb') as f:
-            pickle.dump(pipe, f)
-        print("Preprocessing pipeline saved as preprocessor.pkl")
+        #os.makedirs('artifacts', exist_ok=True)
+        #with open('artifacts/preprocessor.pkl', 'wb') as f:
+        #    pickle.dump(pipe, f)
+        #print("Preprocessing pipeline saved as preprocessor.pkl")
         
         return pipe
 
 
-        return pipe
+    def extract_Deptdate_time(self,df):
+        # Split the specified column into 'DeptDATE' and 'DeptTIME'
+        df[['Date_of_Journey', 'Dep_Time']] = df['Date_of_Journey'].str.split('T', expand=True)
+        df['Date_of_Journey'] = pd.to_datetime(df['Date_of_Journey']).dt.strftime('%d/%m/%Y')
+
+        return df
+    def extract_Arrdate_time(self,df):
+        # Split the specified column into 'DeptDATE' and 'DeptTIME'
+        df[['Arrival_Time']] = df['Arrival_Time'].str.split("T")[0][1]        
+        return df
+
+    def calculateDuration(self,df):
+        # Calculate Duration
+        df['Arrival_Time'] = pd.to_datetime(df['Arrival_Time'])
+        df['Dep_Time'] = pd.to_datetime(df['Dep_Time'])
+        # Convert time to datetime format
+        df['Duration'] = df['Arrival_Time'] - df['Dep_Time']
+        # Calculate total minutes
+        df['hoursMinutes'] = df['Duration'].dt.total_seconds() / 60
+
+        return df
+    
+    def restructure_columns_predictionPipeline(self,df):
+        df = df[['Airline', 'Source', 'Destination', 'Total_Stops', 'Day','Month', 'Year',
+                        'Dept_Hour', 'Dept_Minute', 'Arr_Hour', 'Arr_Minute','hoursMinutes']]
+        
+        return df
+
+
+    def preprocesing(self,df):
+        preprocessorPath = "artifacts/preprocessor.pkl"
+        transformation = load_objects(file_path=preprocessorPath)
+        dataScaled = transformation.transform(df)
+        return dataScaled
+
+
+    def predict(self,dataScaled):
+        modelPath = "artifacts/best_model.pkl"
+        model = load_objects(file_path=modelPath)
+        pred = model.predict(dataScaled)
+        return pred
+
