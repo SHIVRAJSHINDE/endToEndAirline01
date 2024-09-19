@@ -1,0 +1,53 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+from src.component.st01apreprocessingFunctions import streamlineData
+from src.component.st01trainingFunctions import ModelTrainer
+import seaborn as sns
+import warnings
+from dataclasses import dataclass, field
+
+warnings.filterwarnings('ignore')
+
+class TrainingPipeline:
+    def __init__(self):
+        self.filePath = "D:\\MLProjects\\ZDatasets\\AirlineData\\r\\Combined.xlsx"
+        self.streamline_data = streamlineData()
+        self.ModelTrainer = ModelTrainer()
+
+    def training_pipeline_method(self):
+        # Read the data from the file
+        print(self.filePath)
+        df = self.streamline_data.read_data(self.filePath)
+        df = self.streamline_data.drop_missing_route_rows(df)
+        df = self.streamline_data.drop_duplicates(df)
+        df = self.streamline_data.cleanup(df)
+        # Remove outliers by airline
+        df = self.streamline_data.remove_outliers_by_airline(df)
+        # Extract date components
+        df = self.streamline_data.extract_date_components(df)
+        df = self.streamline_data.extract_Dept_Hrs_Minutes(df,'Dep_Time')
+        df = self.streamline_data.extract_Arr_Hrs_Minutes(df,'Arrival_Time')
+        df = self.streamline_data.calculate_hours_minutes(df)
+        columns_to_drop = ["Arrival_Time","Arrival_Time","Dep_Time","Date_of_Journey","Route","Duration","Additional_Info"]
+        df = self.streamline_data.drop_unnecessary_columns(df,columns_to_drop)
+        df = self.streamline_data.restructure_columns(df)
+        y,X = self.streamline_data.y_column_and_X_columns(df)
+        X_train, X_test, y_train, y_test = self.streamline_data.train_test_split(y,X)
+        pipe = self.streamline_data.methodPreprocessing()
+        print(X_train['Airline'].value_counts())
+
+        X_train = pipe.fit_transform(X_train)
+        X_test = pipe.transform(X_test)
+
+
+        
+        self.ModelTrainer.train_and_save_best_model(X_train, y_train, X_test, y_test)
+
+        return pd.DataFrame(X_train)
+    
+
+# Example usage
+if __name__ == "__main__":
+    pipeline = TrainingPipeline()
+    X = pipeline.training_pipeline_method()
+    print(X)
