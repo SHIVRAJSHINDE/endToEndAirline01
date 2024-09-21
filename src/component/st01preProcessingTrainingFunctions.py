@@ -41,13 +41,14 @@ class streamlineData():
         self.df = pd.read_excel(filePath)
         return self.df
 
-    def drop_missing_route_rows(self,df):
+    def drop_missing_rows(self,df):
         """Identify and drop rows with missing values in the 'Route' column."""
         # Find indices of rows where 'Route' is null
         route_missing_rows = df[df['Route'].isnull()].index
         # Drop those rows from the DataFrame
         df.drop(route_missing_rows, inplace=True)
         return df
+    
     def drop_duplicates(self,df):
         df = df.drop_duplicates()
         return df
@@ -179,45 +180,4 @@ class streamlineData():
         return pipe
 
 
-    def extract_Deptdate_time(self,df):
-        # Split the specified column into 'DeptDATE' and 'DeptTIME'
-        df[['Date_of_Journey', 'Dep_Time']] = df['Date_of_Journey'].str.split('T', expand=True)
-        df['Date_of_Journey'] = pd.to_datetime(df['Date_of_Journey']).dt.strftime('%d/%m/%Y')
-
-        return df
-    def extract_Arrdate_time(self,df):
-        # Split the specified column into 'DeptDATE' and 'DeptTIME'
-        df[['Arrival_Time']] = df['Arrival_Time'].str.split("T")[0][1]        
-        return df
-
-    def calculateDuration(self,df):
-        # Calculate Duration
-        df['Arrival_Time'] = pd.to_datetime(df['Arrival_Time'])
-        df['Dep_Time'] = pd.to_datetime(df['Dep_Time'])
-        # Convert time to datetime format
-        df['Duration'] = df['Arrival_Time'] - df['Dep_Time']
-        # Calculate total minutes
-        df['hoursMinutes'] = df['Duration'].dt.total_seconds() / 60
-
-        return df
-    
-    def restructure_columns_predictionPipeline(self,df):
-        df = df[['Airline', 'Source', 'Destination', 'Total_Stops', 'Day','Month', 'Year',
-                        'Dept_Hour', 'Dept_Minute', 'Arr_Hour', 'Arr_Minute','hoursMinutes']]
-        
-        return df
-
-
-    def preprocesing(self,df):
-        preprocessorPath = "artifacts/preprocessor.pkl"
-        transformation = load_objects(file_path=preprocessorPath)
-        dataScaled = transformation.transform(df)
-        return dataScaled
-
-
-    def predict(self,dataScaled):
-        modelPath = "artifacts/best_model.pkl"
-        model = load_objects(file_path=modelPath)
-        pred = model.predict(dataScaled)
-        return pred
 

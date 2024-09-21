@@ -1,6 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-from src.component.st01apreprocessingFunctions import streamlineData
+from src.component.st01preProcessingTrainingFunctions import streamlineData
 from src.component.st02trainingFunctions import ModelTrainer
 import seaborn as sns
 import warnings
@@ -19,7 +19,7 @@ class TrainingPipeline:
         # Read the data from the file
         print(self.filePath)
         df = self.streamline_data.read_data(self.filePath)
-        df = self.streamline_data.drop_missing_route_rows(df)
+        df = self.streamline_data.drop_missing_rows(df)
         df = self.streamline_data.drop_duplicates(df)
         df = self.streamline_data.cleanup(df)
         # Remove outliers by airline
@@ -35,7 +35,7 @@ class TrainingPipeline:
         y,X = self.streamline_data.y_column_and_X_columns(df)
         X_train, X_test, y_train, y_test = self.streamline_data.train_test_split(y,X)
         pipe = self.streamline_data.methodPreprocessing()
-        print(X_train['Airline'].value_counts())
+        # print(X_train['Airline'].value_counts())
 
         X_train = pipe.fit_transform(X_train)
         X_test = pipe.transform(X_test)
